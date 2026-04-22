@@ -1,0 +1,212 @@
+--[[
+    SCRIPT: EMOTE SPEED CONTROLLER (VISUAL REVISADO + TÍTULO)
+--]]
+
+local Player = game.Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+-- Controle
+local currentSpeed = 1
+local lastClick = 0
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CUBNIT_UI_REFINED"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
+
+-- FUNÇÃO DE ARRASTE (DRAG) UNIVERSAL
+local function EnableDrag(guiElement)
+	local dragging, dragInput, dragStart, startPos
+
+	guiElement.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = guiElement.Position
+		end
+	end)
+
+	guiElement.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UIS.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			local delta = input.Position - dragStart
+			guiElement.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	UIS.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+end
+
+-- 🔘 BOTÃO TOGGLE (ARRASTÁVEL)
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Size = UDim2.new(0, 55, 0, 55)
+ToggleButton.Position = UDim2.new(0.05, 0, 0.4, 0)
+ToggleButton.Image = "rbxassetid://77999289188673"
+ToggleButton.BackgroundTransparency = 1
+ToggleButton.Parent = ScreenGui
+
+EnableDrag(ToggleButton)
+
+-- 🖤 FRAME PRINCIPAL
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 320, 0, 180) -- Dimensões mantidas conforme solicitado
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -90)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+MainFrame.Visible = false
+MainFrame.ZIndex = 1
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Thickness = 2
+
+local MainCorner = Instance.new("UICorner", MainFrame)
+MainCorner.CornerRadius = UDim.new(0, 10)
+
+EnableDrag(MainFrame)
+
+-- 🏷️ TÍTULO: SPEED EMOTE
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.Position = UDim2.new(0, 0, 0.05, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "SPEED EMOTE"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextScaled = true
+TitleLabel.ZIndex = 2
+TitleLabel.Parent = MainFrame
+
+-- 🔥 IMAGEM DE FUNDO (LOGO CENTRALIZADA)
+local BackgroundLogo = Instance.new("ImageLabel")
+BackgroundLogo.Size = UDim2.new(0, 130, 0, 130) 
+BackgroundLogo.Position = UDim2.new(0.5, 0, 0.45, 0)
+BackgroundLogo.AnchorPoint = Vector2.new(0.5, 0.5) 
+BackgroundLogo.Image = "rbxassetid://130275641191868"
+BackgroundLogo.BackgroundTransparency = 1
+BackgroundLogo.ImageTransparency = 0.65
+BackgroundLogo.ScaleType = Enum.ScaleType.Fit 
+BackgroundLogo.ZIndex = 1
+BackgroundLogo.Parent = MainFrame
+
+-- TEXTO CENTRAL (INPUT)
+local SpeedInput = Instance.new("TextBox")
+SpeedInput.Size = UDim2.new(1, 0, 0, 50)
+SpeedInput.Position = UDim2.new(0, 0, 0.3, 0) -- Reajustado para ficar abaixo do título
+SpeedInput.BackgroundTransparency = 1
+SpeedInput.Text = "( ......... )"
+SpeedInput.TextColor3 = Color3.fromRGB(255,255,255)
+SpeedInput.Font = Enum.Font.SourceSansBold
+SpeedInput.TextSize = 35
+SpeedInput.ZIndex = 2
+SpeedInput.Parent = MainFrame
+
+-- 🧱 RODAPÉ
+local Footer = Instance.new("Frame")
+Footer.Size = UDim2.new(1, 0, 0, 60)
+Footer.Position = UDim2.new(0, 0, 1, -60)
+Footer.BackgroundColor3 = Color3.fromRGB(15,15,15)
+Footer.BorderSizePixel = 0
+Footer.ZIndex = 2
+Footer.Parent = MainFrame
+
+local FooterCorner = Instance.new("UICorner", Footer)
+
+-- BOOST
+local BoostBtn = Instance.new("TextButton")
+BoostBtn.Size = UDim2.new(0.42, 0, 0.7, 0)
+BoostBtn.Position = UDim2.new(0.04, 0, 0.15, 0)
+BoostBtn.BackgroundColor3 = Color3.fromRGB(255,255,255)
+BoostBtn.Text = "Boost"
+BoostBtn.TextColor3 = Color3.fromRGB(0,0,0)
+BoostBtn.Font = Enum.Font.SourceSansBold
+BoostBtn.TextSize = 22
+BoostBtn.ZIndex = 3
+BoostBtn.Parent = Footer
+
+Instance.new("UICorner", BoostBtn).CornerRadius = UDim.new(0, 5)
+
+-- RESET
+local ResetBtn = Instance.new("TextButton")
+ResetBtn.Size = UDim2.new(0.42, 0, 0.7, 0)
+ResetBtn.Position = UDim2.new(0.54, 0, 0.15, 0)
+ResetBtn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+ResetBtn.Text = "Voltar ao\nNormal"
+ResetBtn.TextColor3 = Color3.fromRGB(255,255,255)
+ResetBtn.Font = Enum.Font.SourceSansBold
+ResetBtn.TextSize = 14
+ResetBtn.ZIndex = 3
+ResetBtn.Parent = Footer
+
+Instance.new("UICorner", ResetBtn).CornerRadius = UDim.new(0, 5)
+
+-- FUNÇÃO SPEED
+local function ApplySpeed(speed)
+	currentSpeed = speed
+	local animator = Humanoid:FindFirstChildOfClass("Animator")
+	if animator then
+		for _, track in pairs(animator:GetPlayingAnimationTracks()) do
+			track:AdjustSpeed(speed)
+		end
+	end
+end
+
+Humanoid.AnimationPlayed:Connect(function(track)
+	track:AdjustSpeed(currentSpeed)
+end)
+
+-- LOGICA BOTOES
+BoostBtn.MouseButton1Click:Connect(function()
+	local val = tonumber(SpeedInput.Text)
+	if val then
+		val = math.clamp(val, 0.1, 100)
+		ApplySpeed(val)
+	end
+end)
+
+ResetBtn.MouseButton1Click:Connect(function()
+	SpeedInput.Text = "( ......... )"
+	ApplySpeed(1)
+end)
+
+-- TOGGLE / FECHAR
+ToggleButton.MouseButton1Click:Connect(function()
+	local now = tick()
+	if now - lastClick < 0.3 then
+		ScreenGui:Destroy()
+	else
+		MainFrame.Visible = not MainFrame.Visible
+	end
+	lastClick = now
+end)
+
+-- PLACEHOLDER
+SpeedInput.Focused:Connect(function()
+	if SpeedInput.Text == "( ......... )" then SpeedInput.Text = "" end
+end)
+
+SpeedInput.FocusLost:Connect(function()
+	if SpeedInput.Text == "" then SpeedInput.Text = "( ......... )" end
+end)
